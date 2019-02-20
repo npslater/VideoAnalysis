@@ -1,0 +1,194 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Video Analysis using Rek.
+Resources:
+  VideoAnalysisBucket:
+    Type: 'AWS::S3::Bucket'
+    DependsOn: 
+      - 'NewVideoTopicPolicy'
+    Properties:
+      BucketName: !Join ['-', ['videoanalysis', !Ref 'AWS::AccountId']]
+      NotificationConfiguration:
+        TopicConfigurations:
+        -
+          Event: 's3:ObjectCreated:*'
+          Topic: !Ref NewVideoTopic
+  TriggerRekVideo:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: TriggerRekVideo/lambda_function.lambda_handler
+      Runtime: python3.6
+      Description: ''
+      MemorySize: 128
+      Timeout: 15
+      CodeUri: .debug/
+      Role: !GetAtt TriggerRekExecutionRole.Arn
+  RetrieveAnalysis:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: RetrieveAnalysis/lambda_function.lambda_handler
+      Runtime: python3.6
+      Description: ''
+      MemorySize: 128
+      Timeout: 15
+      CodeUri: .debug/
+      Role: !GetAtt RetrieveAnalysisExecutionRole.Arn
+  RekVideoAnalysisQueue:
+    Type: 'AWS::SQS::Queue'
+  NewVideoQueue:
+    Type: 'AWS::SQS::Queue'
+  SNSQueuePolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - sqs:SendMessage
+            Resource: '*'
+            Condition: 
+              ArnEquals: 
+                aws:SourceArn: 
+                  - !Ref NewVideoTopic
+                  - !Ref RekVideoAnalysisTopic
+      Queues:
+        - !Ref RekVideoAnalysisQueue
+        - !Ref NewVideoQueue
+  RekVideoAnalysisTopic:
+    Type: 'AWS::SNS::Topic'
+  RekVideoAnalysisSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref RekVideoAnalysisTopic
+      Protocol: 'sqs'
+      Endpoint: !GetAtt RekVideoAnalysisQueue.Arn
+  NewVideoTopic:
+    Type: 'AWS::SNS::Topic'
+  NewVideoTopicPolicy:
+    Type: 'AWS::SNS::TopicPolicy'
+    Properties:
+      PolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service: 
+                - 's3.amazonaws.com'
+            Action: 'sns:Publish'
+            Resource: 
+              - !Ref NewVideoTopic
+            Condition:
+              ArnLike: 
+                aws:SourceArn: !Join ['', ['arn:aws:s3:::', 'videoanalysis-', !Ref 'AWS::AccountId']]
+      Topics: 
+        - !Ref NewVideoTopic
+  NewVideoTopicSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref NewVideoTopic
+      Protocol: 'sqs'
+      Endpoint: !GetAtt NewVideoQueue.Arn
+  TriggerRekExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service: 
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: !Join ['', ['/', !Ref 'AWS::StackName', '/']]
+  RetrieveAnalysisExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service: 
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: !Join ['', ['/', !Ref 'AWS::StackName', '/']]
+  RekExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'rekognition.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: !Join ['', ['/', !Ref 'AWS::StackName', '/']]
+  IAMPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      Roles:
+        - !Ref TriggerRekExecutionRole
+      PolicyName: !Join ['_', [!Ref 'AWS::StackName', 'iam']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Sid: 1
+            Effect: 'Allow'
+            Action: 'iam:PassRole'
+            Resource:
+              - !GetAtt RekExecutionRole.Arn
+  SNSPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      Roles:
+        - !Ref RekExecutionRole
+      PolicyName: !Join ['_', [!Ref 'AWS::StackName', 'sns']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Sid: 1
+            Effect: 'Allow'
+            Action:
+              - 'sns:Publish'
+            Resource:
+              - !Ref RekVideoAnalysisTopic
+  S3Policy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      Roles: 
+        - !Ref RekExecutionRole
+      PolicyName: !Join ['_', [!Ref 'AWS::StackName', 's3']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Sid: 1
+            Effect: 'Allow'
+            Action:
+              - 's3:GetObject'
+            Resource:
+              - !Join ['', [!GetAtt VideoAnalysisBucket.Arn, '/', '*']]
+              
+Outputs:
+  VideoAnalysisBucket: 
+    Value: !Ref VideoAnalysisBucket
+    
+  
