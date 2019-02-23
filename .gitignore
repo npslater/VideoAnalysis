@@ -1,2 +1,4 @@
 .application.json
 .debug/
+.pytest_cache/
+__pycache__

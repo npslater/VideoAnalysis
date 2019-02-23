@@ -15,24 +15,42 @@ Resources:
           Topic: !Ref NewVideoTopic
   TriggerRekVideo:
     Type: 'AWS::Serverless::Function'
+    DependsOn: SQSPolicy
     Properties:
-      Handler: TriggerRekVideo/lambda_function.lambda_handler
+      Handler: handler.lambda_handler
       Runtime: python3.6
       Description: ''
       MemorySize: 128
       Timeout: 15
-      CodeUri: .debug/
+      CodeUri: TriggerRekVideo/
       Role: !GetAtt TriggerRekExecutionRole.Arn
+      Environment:
+        Variables:
+          REK_EXEC_ROLE_ARN: !GetAtt RekExecutionRole.Arn
+          SNS_TOPIC_ARN: !Ref RekVideoAnalysisTopic
+      Events:
+        NewVideo:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt NewVideoQueue.Arn
+            BatchSize: 10
   RetrieveAnalysis:
     Type: 'AWS::Serverless::Function'
+    DependsOn: SQSPolicy
     Properties:
-      Handler: RetrieveAnalysis/lambda_function.lambda_handler
+      Handler: handler.lambda_handler
       Runtime: python3.6
       Description: ''
       MemorySize: 128
       Timeout: 15
-      CodeUri: .debug/
+      CodeUri: RetrieveAnalysis/
       Role: !GetAtt RetrieveAnalysisExecutionRole.Arn
+      Events:
+        AnalysisComplete:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RekVideoAnalysisQueue.Arn
+            BatchSize: 10
   RekVideoAnalysisQueue:
     Type: 'AWS::SQS::Queue'
   NewVideoQueue:
@@ -175,6 +193,7 @@ Resources:
     Properties:
       Roles: 
         - !Ref RekExecutionRole
+        - !Ref TriggerRekExecutionRole
       PolicyName: !Join ['_', [!Ref 'AWS::StackName', 's3']]
       PolicyDocument:
         Version: '2012-10-17'
@@ -183,9 +202,49 @@ Resources:
             Sid: 1
             Effect: 'Allow'
             Action:
-              - 's3:GetObject'
+              - 's3:Get*'
             Resource:
               - !Join ['', [!GetAtt VideoAnalysisBucket.Arn, '/', '*']]
+  RekPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      Roles:
+        - !Ref TriggerRekExecutionRole
+      PolicyName: !Join ['_', [!Ref 'AWS::StackName', 'rek']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Sid: 1
+            Effect: 'Allow'
+            Action:
+              - 'rekognition:StartLabelDetection'
+              - 'rekognition:StartContentModeration'
+              - 'rekognition:StartCelebrityRecognition'
+            Resource: '*'
+  SQSPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      Roles:
+        - !Ref TriggerRekExecutionRole
+        - !Ref RetrieveAnalysisExecutionRole
+      PolicyName: !Join ['_', [!Ref 'AWS::StackName', 'sqs']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Sid: 1
+            Effect: 'Allow'
+            Action:
+              - 'sqs:ReceiveMessage'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:ChangeMessageVisibilityBatch'
+              - 'sqs:GetQueueUrl'
+            Resource:
+              - !GetAtt RekVideoAnalysisQueue.Arn
+              - !GetAtt NewVideoQueue.Arn
               
 Outputs:
   VideoAnalysisBucket: 

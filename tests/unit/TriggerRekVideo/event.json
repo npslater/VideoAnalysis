@@ -1,0 +1,20 @@
+{
+    "Records": [
+        {
+            "messageId": "b1a956ee-0fc3-43a5-b981-f829ba2659ad",
+            "receiptHandle": "AQEBLMR6kIzf9CwIfwG1I+wcjigLdzQmVCrFB5ehzoP/TefwtHg/64wvKL70fc07pKqi3OhjBvvsE2zaJyfonJ63UgcisKDQu0ts224DARr3+CecltXxzGBgEO9zos7R9sadtv5/Vh1VCdeBPL5e+zjt5iNumC68Ourcia6llJ8ZWeK55HkSv9KobgKYP98QDv7FXo8OOqgDP+c6c6kJSY6Q5lHABMKMFSHRaVlJhrBKFox8LyGIaYs3E2WFGLf+2bD6r/cK/xCv4fJNip9O3cPaW9gJnK9GR2pMwW1UAACvi4sPTsJNBB3vNuw3qDi5T+uYutnjaZ52aFvFp2dL3t5v0SKwcfvHMvJHWXVKlLLhynIq1TbQbbks9tjqt3gXRL3WKABhB83ktCuY9sAPjLgYozHY9Yf+GO5Kt7P1xUuk3S9lnvAMZaFxKTi4yP7OJmwx",
+            "body": "{\n  \"Type\" : \"Notification\",\n  \"MessageId\" : \"cba74bcb-ca87-5afe-9121-1f22e33f40ad\",\n  \"TopicArn\" : \"arn:aws:sns:us-west-2:127436723527:videoanalysis-NewVideoTopic-I15VIDFXY9A7\",\n  \"Subject\" : \"Amazon S3 Notification\",\n  \"Message\" : \"{\\\"Records\\\":[{\\\"eventVersion\\\":\\\"2.1\\\",\\\"eventSource\\\":\\\"aws:s3\\\",\\\"awsRegion\\\":\\\"us-west-2\\\",\\\"eventTime\\\":\\\"2019-02-21T22:34:32.290Z\\\",\\\"eventName\\\":\\\"ObjectCreated:Put\\\",\\\"userIdentity\\\":{\\\"principalId\\\":\\\"AWS:AIDAJNLCDGP4YXZNV2GW6\\\"},\\\"requestParameters\\\":{\\\"sourceIPAddress\\\":\\\"73.170.197.60\\\"},\\\"responseElements\\\":{\\\"x-amz-request-id\\\":\\\"84780F96594A76F6\\\",\\\"x-amz-id-2\\\":\\\"SQxTCcN/qKLVCKH0nC66VZnEjy7AzdSXKqRTlKpOisvnBN10L3mg2fKdlrqqTZNYOUj3tTi8nLA=\\\"},\\\"s3\\\":{\\\"s3SchemaVersion\\\":\\\"1.0\\\",\\\"configurationId\\\":\\\"d08ece45-bc65-4f4b-bc83-c89c5398e78a\\\",\\\"bucket\\\":{\\\"name\\\":\\\"videoanalysis-127436723527\\\",\\\"ownerIdentity\\\":{\\\"principalId\\\":\\\"A1YNQCOHGI9FAL\\\"},\\\"arn\\\":\\\"arn:aws:s3:::videoanalysis-127436723527\\\"},\\\"object\\\":{\\\"key\\\":\\\"week4_1.mp4\\\",\\\"size\\\":8159646,\\\"eTag\\\":\\\"1aae4c9aa11889ccec82121c1a1027ab\\\",\\\"sequencer\\\":\\\"005C6F276E4AA689D2\\\"}}}]}\",\n  \"Timestamp\" : \"2019-02-21T22:34:32.353Z\",\n  \"SignatureVersion\" : \"1\",\n  \"Signature\" : \"LlLJtu+Hk5cGsAv8c83d+Fj/BPyEB7TvizojJhbt6n1hzUoJFKxbPAX4QBY85SRKX2w9OuSKgoZT3PF8Fe9rh1QACXDxh1Ec3CYercTxlEyVd8RVlWf3N+Fjt/q+EcCZSbiW5PXTwpRXfstial1FqY4D6OqUhrcV18WkTqGNz6L+hk1nqZW9k42SY7p2HNJorS7tHMXwCSKsqvJGFXu213c1DiiuRJAOVBzJQkSq5oHUwS00tvne7v60g3OyvdjqGdkpTnGPhsuC8VoB7QZp5+Dow78BhC4lVXJWSI7AFRtPKFZAAPNzjwBH9D+ofi7JWuAzbkzwM4t98xckiqo/dg==\",\n  \"SigningCertURL\" : \"https://sns.us-west-2.amazonaws.com/SimpleNotificationService-6aad65c2f9911b05cd53efda11f913f9.pem\",\n  \"UnsubscribeURL\" : \"https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:127436723527:videoanalysis-NewVideoTopic-I15VIDFXY9A7:ddfd82da-3150-40ff-96c1-b7fcc602ed47\"\n}",
+            "attributes": {
+                "ApproximateReceiveCount": "12",
+                "SentTimestamp": "1550788472461",
+                "SenderId": "AIDAIYLAVTDLUXBIEIX46",
+                "ApproximateFirstReceiveTimestamp": "1550788472461"
+            },
+            "messageAttributes": {},
+            "md5OfBody": "67adb28303ade0110b11c21e4af57ea2",
+            "eventSource": "aws:sqs",
+            "eventSourceARN": "arn:aws:sqs:us-west-2:127436723527:videoanalysis-NewVideoQueue-1RRX1U1F5PH4U",
+            "awsRegion": "us-west-2"
+        }
+    ]
+}
